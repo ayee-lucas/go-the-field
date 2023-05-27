@@ -3,8 +3,9 @@ package main
 import (
 	"os"
 
-	"github.com/bmdavis419/fiber-mongo-example/common"
-	"github.com/bmdavis419/fiber-mongo-example/router"
+	"github.com/alopez-2018459/go-bank-system/internal/db"
+	"github.com/alopez-2018459/go-bank-system/internal/routes"
+	"github.com/alopez-2018459/go-bank-system/internal/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -21,13 +22,18 @@ func main() {
 
 func run() error {
 
-	err := common.LoadEnv()
+	err := utils.LoadEnv()
+	if err != nil {
+		return err
+	}
+
+	err = db.InitDB()
 
 	if err != nil {
 		return err
 	}
 
-	//	defer common.CloseDB()
+	defer db.CloseDB()
 
 	app := fiber.New()
 
@@ -35,9 +41,10 @@ func run() error {
 	app.Use(cors.New())
 	app.Use(recover.New())
 
-	router.AddBookGroup(app)
+	routes.SetupRoutes(app)
 
 	var port string
+
 	if port = os.Getenv("PORT"); port == "" {
 		port = "8080"
 	}
