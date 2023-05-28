@@ -60,7 +60,7 @@ func GetById(id string) (*models.User, error) {
 	return user, nil
 }
 
-func GetyByUsername(username string) (*models.User, error) {
+func GetByUsername(username string) (*models.User, error) {
 	coll := db.GetDBCollection("users")
 
 	user := &models.User{}
