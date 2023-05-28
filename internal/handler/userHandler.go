@@ -48,8 +48,15 @@ func SaveUser(ctx *fiber.Ctx) error {
 	}
 
 	err = validations.IsStringEmpty(body.Email)
+
 	if err != nil {
 		return ctx.Status(400).JSON(fiber.Map{"error": "Email is required"})
+	}
+
+	err = validations.IsEmailValid(body.Email)
+
+	if err != nil {
+		return ctx.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	err = validations.IsStringEmpty(body.Password)
