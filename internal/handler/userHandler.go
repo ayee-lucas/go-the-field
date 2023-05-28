@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// GetUsers retrieves all users from the repository and returns them as a JSON response.
 func GetUsers(ctx *fiber.Ctx) error {
 
 	users, err := repository.GetAllUsers()
@@ -24,6 +25,7 @@ func GetUsers(ctx *fiber.Ctx) error {
 	return ctx.Status(200).JSON(users)
 }
 
+// createUser represents the request body for creating a new user.
 type createUser struct {
 	Username  string    `json:"username" bson:"username"`
 	Email     string    `json:"email" bson:"email,"`
@@ -31,6 +33,8 @@ type createUser struct {
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 }
+
+// SaveUser handles the creation of a new user.
 
 func SaveUser(ctx *fiber.Ctx) error {
 	body := new(createUser)
@@ -79,9 +83,10 @@ func SaveUser(ctx *fiber.Ctx) error {
 	}
 
 	body.Username = strings.ToLower(body.Username)
+
 	body.Email = strings.ToLower(body.Email)
 
-	usernameExist, _ := repository.GetyByUsername(body.Username)
+	usernameExist, _ := repository.GetByUsername(body.Username)
 
 	if usernameExist != nil {
 		return ctx.Status(400).JSON(fiber.Map{"error": "Username already exists"})
