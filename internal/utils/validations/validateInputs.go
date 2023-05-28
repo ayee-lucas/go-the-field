@@ -50,7 +50,7 @@ func IsEmailValid(str string) error {
 	re := regexp.MustCompile(emailRegex)
 
 	if !re.MatchString(str) {
-		return errors.New("Email is not valid")
+		return errors.New("Invalid email address")
 	}
 
 	return nil
@@ -66,7 +66,7 @@ func IsUsernameValid(str string) error {
 
 	// Check if the username matches the regular expression pattern
 	if !re.MatchString(str) {
-		return errors.New("Username is not valid")
+		return errors.New("Invalid username format")
 	}
 
 	return nil
