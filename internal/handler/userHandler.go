@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alopez-2018459/go-the-field/internal/auth"
 	"github.com/alopez-2018459/go-the-field/internal/models"
 	"github.com/alopez-2018459/go-the-field/internal/repository"
 	"github.com/alopez-2018459/go-the-field/internal/utils/validations"
@@ -29,7 +30,7 @@ type createUser struct {
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 }
 
-func SaveUser(ctx *fiber.Ctx) error {
+func SignUp(ctx *fiber.Ctx) error {
 	body := new(createUser)
 
 	err := ctx.BodyParser(body)
@@ -107,9 +108,11 @@ type loginUser struct {
 	Password string `json:"password" bson:"password"`
 }
 
-func Login(ctx *fiber.Ctx) error {
+func SignIn(ctx *fiber.Ctx) error {
 
 	body := new(loginUser)
+
+	var sessionId string
 
 	err := ctx.BodyParser(body)
 	if err != nil {
@@ -137,5 +140,16 @@ func Login(ctx *fiber.Ctx) error {
 		return ctx.Status(400).JSON(fiber.Map{"error": "Invalid password", "message": err.Error()})
 	}
 
-	return ctx.Status(200).JSON(fiber.Map{"message": "Logged in successfully"})
+	userSession := &models.UserSession{
+		Username: usernameExist.Username,
+		Email:    usernameExist.Email,
+	}
+
+	sessionId, err = auth.GenerateSession(userSession)
+
+	if err != nil {
+		return ctx.Status(500).JSON(fiber.Map{"error": "Failed to generate session", "message": err.Error()})
+	}
+
+	return ctx.Status(200).JSON(fiber.Map{"message": "Logged in successfully", "session_id": sessionId})
 }
