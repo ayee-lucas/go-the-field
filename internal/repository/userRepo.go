@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/alopez-2018459/go-bank-system/internal/db"
-	"github.com/alopez-2018459/go-bank-system/internal/models"
+	"github.com/alopez-2018459/go-the-field/internal/db"
+	"github.com/alopez-2018459/go-the-field/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

@@ -4,9 +4,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alopez-2018459/go-bank-system/internal/models"
-	"github.com/alopez-2018459/go-bank-system/internal/repository"
-	"github.com/alopez-2018459/go-bank-system/internal/utils/validations"
+	"github.com/alopez-2018459/go-the-field/internal/models"
+	"github.com/alopez-2018459/go-the-field/internal/repository"
+	"github.com/alopez-2018459/go-the-field/internal/utils/validations"
 	"github.com/gofiber/fiber/v2"
 )
 

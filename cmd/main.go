@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
-	"github.com/alopez-2018459/go-bank-system/internal/db"
-	"github.com/alopez-2018459/go-bank-system/internal/routes"
-	"github.com/alopez-2018459/go-bank-system/internal/utils"
+	"github.com/alopez-2018459/go-the-field/internal/db"
+	"github.com/alopez-2018459/go-the-field/internal/routes"
+	"github.com/alopez-2018459/go-the-field/internal/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"

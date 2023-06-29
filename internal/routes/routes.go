@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/alopez-2018459/go-bank-system/internal/handler"
+	"github.com/alopez-2018459/go-the-field/internal/handler"
 	"github.com/gofiber/fiber/v2"
 )
 

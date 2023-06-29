@@ -1,4 +1,4 @@
-module github.com/alopez-2018459/go-bank-system
+module github.com/alopez-2018459/go-the-field
 
 go 1.20
 
