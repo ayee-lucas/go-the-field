@@ -14,8 +14,8 @@ func SetupRoutes(app *fiber.App) {
 	}
 	{
 		accountGroup := apiGroup.Group("/account")
-		accountGroup.Post("/register", handler.SaveUser)
-		accountGroup.Post("/login", handler.Login)
+		accountGroup.Post("/register", handler.SignUp)
+		accountGroup.Post("/login", handler.SignIn)
 
 	}
 }
