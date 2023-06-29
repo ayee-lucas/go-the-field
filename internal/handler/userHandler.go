@@ -101,3 +101,41 @@ func SaveUser(ctx *fiber.Ctx) error {
 		},
 	})
 }
+
+type loginUser struct {
+	Username string `json:"username" bson:"username"`
+	Password string `json:"password" bson:"password"`
+}
+
+func Login(ctx *fiber.Ctx) error {
+
+	body := new(loginUser)
+
+	err := ctx.BodyParser(body)
+	if err != nil {
+		return ctx.Status(400).JSON(fiber.Map{"error": "Failed to parse request body", "message": err.Error()})
+	}
+
+	err = validations.IsStringEmpty(body.Username)
+	if err != nil {
+		return ctx.Status(400).JSON(fiber.Map{"error": "Username is required"})
+	}
+
+	err = validations.IsStringEmpty(body.Password)
+	if err != nil {
+		return ctx.Status(400).JSON(fiber.Map{"error": "Password is required"})
+	}
+
+	usernameExist, err := repository.GetByUsername(body.Username)
+	if usernameExist == nil {
+		return ctx.Status(400).JSON(fiber.Map{"error": "Username does not exist", "message": err.Error()})
+	}
+
+	err = validations.VerifyPassword(body.Password, usernameExist.Password)
+
+	if err != nil {
+		return ctx.Status(400).JSON(fiber.Map{"error": "Invalid password", "message": err.Error()})
+	}
+
+	return ctx.Status(200).JSON(fiber.Map{"message": "Logged in successfully"})
+}
