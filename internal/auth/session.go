@@ -14,7 +14,7 @@ func GenerateSession(data *models.UserSession) (string, error) {
 
 	data.ID = newSessionId
 	data.CreatedAt = time.Now()
-	data.ExpireOn = time.Now().Add(time.Hour * 24).Unix() // 24 hour Expire Time
+	data.ExpireOn = 86400 // 24 hour Expire Time
 
 	sessionId, err := repository.SaveSession(data)
 
@@ -23,5 +23,28 @@ func GenerateSession(data *models.UserSession) (string, error) {
 	}
 
 	return sessionId, nil
+
+}
+
+func SignOut(sessionId string) (string, error) {
+	id, err := repository.DeleteSession(sessionId)
+
+	if err != nil {
+		return "", err
+	}
+
+	return id, nil
+
+}
+
+func GetSession(session string) (*models.UserSession, error) {
+
+	res, err := repository.FindSession(session)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 
 }
