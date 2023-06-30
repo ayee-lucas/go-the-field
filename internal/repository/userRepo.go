@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func GetAllUsers() ([]models.User, error) {
@@ -96,6 +97,21 @@ func GetByEmail(email string) (*models.User, error) {
 
 func SaveUser(users *models.User) (string, error) {
 	coll := db.GetDBCollection("users")
+
+	_, err := coll.Indexes().CreateMany(context.Background(), []mongo.IndexModel{
+		{
+			Keys:    bson.D{{Key: "email", Value: 1}},
+			Options: options.Index().SetUnique(true),
+		},
+		{
+			Keys:    bson.D{{Key: "username", Value: 1}},
+			Options: options.Index().SetUnique(true),
+		},
+	})
+
+	if err != nil {
+		return "", fmt.Errorf("failed to create indexes: %v", err)
+	}
 
 	result, err := coll.InsertOne(context.Background(), users)
 
