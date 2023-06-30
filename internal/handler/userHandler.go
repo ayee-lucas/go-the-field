@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -85,6 +86,7 @@ func SignUp(ctx *fiber.Ctx) error {
 		Username:  body.Username,
 		Email:     body.Email,
 		Password:  body.Password,
+		Role:      "user",
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -151,5 +153,47 @@ func SignIn(ctx *fiber.Ctx) error {
 		return ctx.Status(500).JSON(fiber.Map{"error": "Failed to generate session", "message": err.Error()})
 	}
 
+	ctx.Response().Header.Set("Authorization", fmt.Sprintf("Bearer %s", sessionId))
+
 	return ctx.Status(200).JSON(fiber.Map{"message": "Logged in successfully", "session_id": sessionId})
+}
+
+func SignOut(ctx *fiber.Ctx) error {
+
+	sessionHeader := ctx.Get("Authorization")
+
+	if sessionHeader == "" || len(sessionHeader) < 8 || sessionHeader[:7] != "Bearer " {
+		return ctx.Status(401).JSON(fiber.Map{"error": "Invalid header"})
+	}
+
+	sessionId := sessionHeader[7:]
+
+	idDeleted, err := auth.SignOut(sessionId)
+
+	if err != nil {
+		return ctx.Status(500).JSON(fiber.Map{"error": "Failed to sign out", "message": err.Error()})
+	}
+
+	return ctx.Status(200).JSON(fiber.Map{"message": "Signed out successfully", "id": idDeleted})
+
+}
+
+func SessionInfo(ctx *fiber.Ctx) error {
+
+	sessionHeader := ctx.Get("Authorization")
+
+	if sessionHeader == "" || len(sessionHeader) < 8 || sessionHeader[:7] != "Bearer " {
+		return ctx.Status(401).JSON(fiber.Map{"error": "Invalid header"})
+	}
+
+	sessionId := sessionHeader[7:]
+
+	user, err := auth.GetSession(sessionId)
+
+	if err != nil {
+		return ctx.Status(500).JSON(fiber.Map{"error": "Failed to get session", "message": err.Error()})
+	}
+
+	return ctx.Status(200).JSON(fiber.Map{"message": "Session info", "user": user})
+
 }
