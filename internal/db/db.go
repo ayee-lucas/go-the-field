@@ -19,6 +19,8 @@ func GetDBCollection(col string) *mongo.Collection {
 func InitDB() error {
 	uri := os.Getenv("MONGO_URI")
 
+	dbName := os.Getenv("MONGO_DB")
+
 	if uri == "" {
 		return errors.New("MONGO_URI not set")
 	}
@@ -28,7 +30,7 @@ func InitDB() error {
 		return err
 	}
 
-	db = client.Database("go_bankdb")
+	db = client.Database(dbName)
 
 	return nil
 }
