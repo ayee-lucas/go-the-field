@@ -38,7 +38,7 @@ func GetAllUsers() ([]models.User, error) {
 
 }
 
-func GetById(id string) (*models.User, error) {
+func GetUserById(id string) (*models.User, error) {
 
 	coll := db.GetDBCollection("users")
 
