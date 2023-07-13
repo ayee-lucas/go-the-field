@@ -123,3 +123,20 @@ func SaveUser(users *models.User) (string, error) {
 
 	return id, nil
 }
+
+func UpdateUser(id primitive.ObjectID, update bson.D) (*mongo.UpdateResult, error) {
+	coll := db.GetDBCollection("users")
+
+	filter := bson.D{{Key: "_id", Value: id}}
+
+	data := bson.D{{Key: "$set", Value: update}}
+
+	result, err := coll.UpdateOne(context.Background(), filter, data)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+
+}

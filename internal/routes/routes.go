@@ -13,6 +13,7 @@ func SetupRoutes(app *fiber.App) {
 		userGroup := apiGroup.Group("/users", middleware.EnsureAuth)
 		userGroup.Get("/", handler.GetUsers)
 		userGroup.Get("/:id", handler.GetUserId)
+		userGroup.Put("/finish/:id", handler.FinishProfile)
 	}
 	{
 		accountGroup := apiGroup.Group("/account")
