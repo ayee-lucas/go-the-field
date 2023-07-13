@@ -14,6 +14,7 @@ type User struct {
 	Email     string               `json:"email" bson:"email"`
 	Password  string               `json:"password" bson:"password"`
 	Online    bool                 `json:"online,omitempty" bson:"online"`
+	Finished  bool                 `json:"finished" bson:"finished"`
 	Role      string               `json:"role" bson:"role" default:"user"`
 	Bio       string               `json:"bio,omitempty" bson:"bio"`
 	Picture   string               `json:"picture,omitempty" bson:"picture"`

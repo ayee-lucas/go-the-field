@@ -88,6 +88,7 @@ func SignUp(ctx *fiber.Ctx) error {
 		Email:     body.Email,
 		Password:  body.Password,
 		Online:    false,
+		Finished:  false,
 		Role:      "user",
 		Bio:       "No bio yet",
 		Likes:     []primitive.ObjectID{},
@@ -205,5 +206,24 @@ func SessionInfo(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(200).JSON(fiber.Map{"status": "authenticated", "user": user})
+
+}
+
+func GetUserId(ctx *fiber.Ctx) error {
+	param := ctx.Params("id")
+
+	_, err := primitive.ObjectIDFromHex(param)
+
+	if err != nil {
+		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Invalid Id"})
+	}
+
+	user, err := repository.GetUserById(param)
+
+	if err != nil {
+		return ctx.Status(500).JSON(fiber.Map{"error": err.Error(), "message": "Failed to get user"})
+	}
+
+	return ctx.Status(200).JSON(fiber.Map{"message": "user found", "user": user})
 
 }
