@@ -21,4 +21,8 @@ func SetupRoutes(app *fiber.App) {
 		accountGroup.Get("/me", handler.SessionInfo)
 
 	}
+	{
+		postGroup := apiGroup.Group("/posts", middleware.EnsureAuth)
+		postGroup.Post("/upload", handler.UploadPost)
+	}
 }
