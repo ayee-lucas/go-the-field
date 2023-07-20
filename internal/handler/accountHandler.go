@@ -83,7 +83,7 @@ func SignUp(ctx *fiber.Ctx) error {
 		Likes:     []primitive.ObjectID{},
 		Followers: []primitive.ObjectID{},
 		Posts:     []primitive.ObjectID{},
-		Picture:   "",
+		Picture:   models.Picture{},
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
