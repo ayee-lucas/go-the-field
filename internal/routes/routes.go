@@ -14,6 +14,7 @@ func SetupRoutes(app *fiber.App) {
 		userGroup.Get("/", handler.GetUsers)
 		userGroup.Get("/:id", handler.GetUserId)
 		userGroup.Put("/finish/:id", handler.FinishProfile)
+		userGroup.Put("/picture/:id", handler.UpdatePicture)
 	}
 	{
 		accountGroup := apiGroup.Group("/account")
