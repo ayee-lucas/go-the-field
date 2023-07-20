@@ -13,7 +13,7 @@ type UserSession struct {
 	Email     string             `json:"email" bson:"email"`
 	Role      string             `json:"role" bson:"role"`
 	Image     string             `json:"image" bson:"image"`
-	Picture   string             `json:"picture" bson:"picture"`
+	Picture   Picture            `json:"picture" bson:"picture"`
 	ExpireOn  int64              `json:"expire_on" bson:"expire_on"`
 	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
 }
