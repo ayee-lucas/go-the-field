@@ -17,10 +17,15 @@ type User struct {
 	Finished  bool                 `json:"finished" bson:"finished"`
 	Role      string               `json:"role" bson:"role" default:"user"`
 	Bio       string               `json:"bio,omitempty" bson:"bio"`
-	Picture   string               `json:"picture,omitempty" bson:"picture"`
+	Picture   Picture              `json:"picture,omitempty" bson:"picture"`
 	Likes     []primitive.ObjectID `json:"likes,omitempty" bson:"likes"`
 	Followers []primitive.ObjectID `json:"followers,omitempty" bson:"followers"`
 	Posts     []primitive.ObjectID `json:"posts,omitempty" bson:"posts"`
 	CreatedAt time.Time            `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time            `json:"updated_at" bson:"updated_at"`
+}
+
+type Picture struct {
+	PictureKey string `json:"pictureKey" bson:"pictureKey"`
+	PictureURL string `json:"pictureURL" bson:"pictureURL"`
 }
