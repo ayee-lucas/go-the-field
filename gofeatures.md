@@ -1,6 +1,5 @@
 ﻿
-## **  
-FeaturesV1**
+## **FeaturesV1**
 
 ### Improved Error Messages
 
