@@ -2,14 +2,16 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"github.com/alopez-2018459/go-the-field/internal/db"
-	"github.com/alopez-2018459/go-the-field/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/alopez-2018459/go-the-field/internal/db"
+	"github.com/alopez-2018459/go-the-field/internal/models"
 )
 
 func GetAllUsers() ([]models.User, error) {
@@ -138,5 +140,80 @@ func UpdateUser(id primitive.ObjectID, update bson.D) (*mongo.UpdateResult, erro
 	}
 
 	return result, nil
+}
+
+func SaveOrg(org *models.Org) (string, error) {
+	coll := db.GetDBCollection("org")
+
+	result, err := coll.InsertOne(context.Background(), org)
+
+	if err != nil {
+		return "", err
+	}
+
+	id := result.InsertedID.(primitive.ObjectID).Hex()
+
+	return id, nil
+}
+
+func GetOrgById(id string) (*models.Org, error) {
+	coll := db.GetDBCollection("org")
+
+	org := &models.Org{}
+
+	objectId, err := primitive.ObjectIDFromHex(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = coll.FindOne(context.Background(), bson.M{"_id": objectId}).Decode(org)
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("Org not found")
+		}
+		return nil, err
+	}
+
+	return org, nil
+
+}
+
+func GetOrgByEmail(email string) (*models.Org, error) {
+
+	coll := db.GetDBCollection("org")
+
+	org := &models.Org{}
+
+	err := coll.FindOne(context.Background(), bson.M{"email": email}).Decode(org)
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("Org not found")
+		}
+		return nil, err
+	}
+	return org, nil
+}
+
+func DeleteOrgById(id string) (*mongo.DeleteResult, error) {
+	coll := db.GetDBCollection("org")
+
+	filter := bson.M{"_id": id}
+
+	res, err := coll.DeleteOne(context.Background(), filter)
+
+	if err != nil {
+		return nil, err
+	}
+
+	deletedCount := res.DeletedCount
+
+	if deletedCount == 0 {
+		return nil, errors.New("organization not found")
+	}
+
+	return res, nil
 
 }

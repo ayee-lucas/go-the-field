@@ -5,18 +5,19 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/alopez-2018459/go-the-field/internal/auth"
 	"github.com/alopez-2018459/go-the-field/internal/models"
 	"github.com/alopez-2018459/go-the-field/internal/repository"
 	"github.com/alopez-2018459/go-the-field/internal/utils/validations"
-	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type createUser struct {
-	Username  string    `json:"username" bson:"username"`
-	Email     string    `json:"email" bson:"email,"`
-	Password  string    `json:"password" bson:"password"`
+	Username  string    `json:"username"   bson:"username"`
+	Email     string    `json:"email"      bson:"email,"`
+	Password  string    `json:"password"   bson:"password"`
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 }
@@ -26,12 +27,14 @@ func SignUp(ctx *fiber.Ctx) error {
 
 	err := ctx.BodyParser(body)
 	if err != nil {
-		return ctx.Status(400).JSON(fiber.Map{"error": "Failed to parse request body", "message": err.Error()})
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": "Failed to parse request body", "message": err.Error()})
 	}
 
 	err = validations.IsStringEmpty(body.Username)
 	if err != nil {
-		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Username is required"})
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": err.Error(), "message": "Username is required"})
 	}
 
 	err = validations.IsStringEmpty(body.Email)
@@ -41,12 +44,14 @@ func SignUp(ctx *fiber.Ctx) error {
 
 	err = validations.IsEmailValid(body.Email)
 	if err != nil {
-		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Invalid email format"})
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": err.Error(), "message": "Invalid email format"})
 	}
 
 	err = validations.IsStringEmpty(body.Password)
 	if err != nil {
-		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Password is required"})
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": err.Error(), "message": "Password is required"})
 	}
 
 	err = validations.IsPasswordValid(body.Password)
@@ -64,12 +69,14 @@ func SignUp(ctx *fiber.Ctx) error {
 
 	usernameExist, _ := repository.GetByUsername(body.Username)
 	if usernameExist != nil {
-		return ctx.Status(400).JSON(fiber.Map{"error": "Error Saving User", "message": "Username already exists"})
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": "Error Saving User", "message": "Username already exists"})
 	}
 
 	emailExist, _ := repository.GetByEmail(body.Email)
 	if emailExist != nil {
-		return ctx.Status(400).JSON(fiber.Map{"error": "Error Saving User", "message": "Email already exists"})
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": "Error Saving User", "message": "Email already exists"})
 	}
 
 	user := &models.User{
@@ -80,6 +87,8 @@ func SignUp(ctx *fiber.Ctx) error {
 		Finished:  false,
 		Role:      "user",
 		Bio:       "No bio yet",
+		Verified:  false,
+		Org:       primitive.ObjectID{},
 		Likes:     []primitive.ObjectID{},
 		Followers: []primitive.ObjectID{},
 		Posts:     []primitive.ObjectID{},
@@ -90,7 +99,8 @@ func SignUp(ctx *fiber.Ctx) error {
 
 	id, err := repository.SaveUser(user)
 	if err != nil {
-		return ctx.Status(500).JSON(fiber.Map{"error": "Failed to save user", "message": err.Error()})
+		return ctx.Status(500).
+			JSON(fiber.Map{"error": "Failed to save user", "message": err.Error()})
 	}
 
 	return ctx.Status(200).JSON(fiber.Map{
@@ -115,22 +125,26 @@ func SignIn(ctx *fiber.Ctx) error {
 
 	err := ctx.BodyParser(body)
 	if err != nil {
-		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Failed to parse request body"})
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": err.Error(), "message": "Failed to parse request body"})
 	}
 
 	err = validations.IsStringEmpty(body.Username)
 	if err != nil {
-		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Username is required"})
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": err.Error(), "message": "Username is required"})
 	}
 
 	err = validations.IsStringEmpty(body.Password)
 	if err != nil {
-		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Password is required"})
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": err.Error(), "message": "Password is required"})
 	}
 
 	usernameExist, err := repository.GetByUsername(body.Username)
 	if usernameExist == nil {
-		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "This username does not exist"})
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": err.Error(), "message": "This username does not exist"})
 	}
 
 	err = validations.VerifyPassword(body.Password, usernameExist.Password)
@@ -150,12 +164,14 @@ func SignIn(ctx *fiber.Ctx) error {
 	sessionId, err = auth.GenerateSession(userSession)
 
 	if err != nil {
-		return ctx.Status(500).JSON(fiber.Map{"error": "Failed to generate session", "message": err.Error()})
+		return ctx.Status(500).
+			JSON(fiber.Map{"error": "Failed to generate session", "message": err.Error()})
 	}
 
 	ctx.Response().Header.Set("Authorization", fmt.Sprintf("Bearer %s", sessionId))
 
-	return ctx.Status(200).JSON(fiber.Map{"message": "Logged in successfully", "session_id": sessionId})
+	return ctx.Status(200).
+		JSON(fiber.Map{"message": "Logged in successfully", "session_id": sessionId})
 }
 
 func SignOut(ctx *fiber.Ctx) error {
@@ -171,7 +187,8 @@ func SignOut(ctx *fiber.Ctx) error {
 	idDeleted, err := auth.SignOut(sessionId)
 
 	if err != nil {
-		return ctx.Status(500).JSON(fiber.Map{"error": "Failed to sign out", "message": err.Error()})
+		return ctx.Status(500).
+			JSON(fiber.Map{"error": "Failed to sign out", "message": err.Error()})
 	}
 
 	return ctx.Status(200).JSON(fiber.Map{"message": "Signed out successfully", "id": idDeleted})
@@ -191,7 +208,8 @@ func SessionInfo(ctx *fiber.Ctx) error {
 	user, err := auth.GetSession(sessionId)
 
 	if err != nil {
-		return ctx.Status(500).JSON(fiber.Map{"error": "Failed to get session", "message": err.Error(), "status": "unauthenticated"})
+		return ctx.Status(500).
+			JSON(fiber.Map{"error": "Failed to get session", "message": err.Error(), "status": "unauthenticated"})
 	}
 
 	return ctx.Status(200).JSON(fiber.Map{"status": "authenticated", "user": user})

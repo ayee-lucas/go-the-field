@@ -1,9 +1,10 @@
 package routes
 
 import (
+	"github.com/gofiber/fiber/v2"
+
 	"github.com/alopez-2018459/go-the-field/internal/handler"
 	"github.com/alopez-2018459/go-the-field/internal/middleware"
-	"github.com/gofiber/fiber/v2"
 )
 
 func SetupRoutes(app *fiber.App) {
@@ -13,6 +14,7 @@ func SetupRoutes(app *fiber.App) {
 		userGroup := apiGroup.Group("/users", middleware.EnsureAuth)
 		userGroup.Get("/", handler.GetUsers)
 		userGroup.Get("/:id", handler.GetUserId)
+		userGroup.Post("/request/org/:id", handler.RequestOrg)
 		userGroup.Put("/finish/:id", handler.FinishProfile)
 		userGroup.Put("/picture/:id", handler.UpdatePicture)
 	}
