@@ -215,5 +215,40 @@ func DeleteOrgById(id string) (*mongo.DeleteResult, error) {
 	}
 
 	return res, nil
+}
+
+func SaveAthlete(athlete *models.Athlete) (string, error) {
+	coll := db.GetDBCollection("athlete")
+
+	result, err := coll.InsertOne(context.Background(), athlete)
+
+	if err != nil {
+		return "", err
+	}
+
+	id := result.InsertedID.(primitive.ObjectID).Hex()
+
+	return id, nil
+
+}
+
+func DeleteAthleteById(id string) (*mongo.DeleteResult, error) {
+	coll := db.GetDBCollection("athlete")
+
+	filter := bson.M{"_id": id}
+
+	res, err := coll.DeleteOne(context.Background(), filter)
+
+	if err != nil {
+		return nil, err
+	}
+
+	deletedCount := res.DeletedCount
+
+	if deletedCount == 0 {
+		return nil, fmt.Errorf("athlete info not found")
+	}
+
+	return res, nil
 
 }

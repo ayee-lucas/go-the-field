@@ -306,5 +306,132 @@ func RequestOrg(ctx *fiber.Ctx) error {
 			"org":     org,
 		},
 	})
+}
+
+type saveOrg struct {
+	Nationality  string   `json:"nationality"  bson:"nationality"`
+	Gender       string   `json:"gender"       bson:"gender"`
+	Sport        string   `json:"sport"        bson:"sport"`
+	Sponsors     []string `json:"sponsors"     bson:"sponsors"`
+	CurrentTeam  string   `json:"current_team" bson:"current_team"`
+	Height       int      `json:"height"       bson:"height"`
+	Weight       int      `json:"weight"       bson:"weight"`
+	Achievements string   `json:"achievements" bson:"achievements"`
+	Contact      string   `json:"contact"      bson:"contact"`
+}
+
+func RequestAthlete(ctx *fiber.Ctx) error {
+
+	body := new(saveOrg)
+
+	param := ctx.Params("id")
+
+	paramId, err := primitive.ObjectIDFromHex(param)
+
+	if err != nil {
+		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Invalid Id"})
+	}
+
+	err = ctx.BodyParser(body)
+	if err != nil {
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": err.Error(), "messsage": "Failed to parse request body"})
+	}
+
+	err = validations.IsStringEmpty(body.Nationality)
+	if err != nil {
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": err.Error(), "message": "Nationality is required"})
+	}
+
+	err = validations.IsStringEmpty(body.Gender)
+	if err != nil {
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": err.Error(), "message": "Gender is required"})
+	}
+
+	err = validations.IsStringEmpty(body.Sport)
+	if err != nil {
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": err.Error(), "message": "Sport is required"})
+	}
+
+	if body.Height < 100 || body.Height > 200 {
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": "Height values received not valid", "message": "Your height is not valid"})
+	}
+
+	if body.Weight < 100 || body.Weight > 400 {
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": "Weight values received not valid", "message": "Your weight is not valid"})
+	}
+
+	body.Contact = strings.ToLower(body.Contact)
+
+	err = validations.IsEmailValid(body.Contact)
+	if err != nil {
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": err.Error(), "message": "Your email is not valid"})
+	}
+
+	user, err := repository.GetUserById(param)
+
+	if err != nil {
+		return ctx.Status(500).
+			JSON(fiber.Map{"error": err.Error(), "message": "Failed to get user"})
+	}
+
+	if !user.Org.IsZero() {
+		return ctx.Status(500).
+			JSON(fiber.Map{"error": "Error adding info to user", "message": "This user already has an org attached"})
+	}
+
+	if !user.Athlete.IsZero() {
+		return ctx.Status(500).
+			JSON(fiber.Map{"error": "Error adding info to user", "message": "This user already has athlete info attached"})
+	}
+
+	athlete := &models.Athlete{
+		Nationality:  body.Nationality,
+		Gender:       body.Gender,
+		Sport:        body.Sport,
+		Sponsors:     body.Sponsors,
+		CurrentTeam:  body.CurrentTeam,
+		Height:       body.Height,
+		Weight:       body.Weight,
+		Achievements: body.Achievements,
+		Contact:      body.Contact,
+	}
+
+	athleteId, err := repository.SaveAthlete(athlete)
+
+	if err != nil {
+		return ctx.Status(500).
+			JSON(fiber.Map{"error": err.Error(), "message": "Failed to save athlete"})
+	}
+
+	userUpdateData := bson.D{{Key: "athlete", Value: athleteId}}
+
+	_, err = repository.UpdateUser(paramId, userUpdateData)
+
+	if err != nil {
+
+		resultAthlete, err := repository.DeleteAthleteById(athleteId)
+
+		if err != nil {
+			return ctx.Status(500).
+				JSON(fiber.Map{"error": err.Error(), "message": "Failed to delete athlete"})
+		}
+		return ctx.Status(500).
+			JSON(fiber.Map{"error": err.Error(), "message": "Failed to add", "deleted": resultAthlete})
+	}
+
+	return ctx.Status(200).JSON(fiber.Map{
+		"result": fiber.Map{
+			"messsage": "Athlete added successfully",
+			"id":       athleteId,
+			"athlete":  athlete,
+		},
+	})
 
 }

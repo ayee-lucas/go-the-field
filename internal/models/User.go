@@ -46,3 +46,16 @@ type Org struct {
 	Sport    []string           `json:"sport"              bson:"sport"`
 	Sponsors []string           `json:"sponsors,omitempty" bson:"sponsor"`
 }
+
+type Athlete struct {
+	ID           primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	Nationality  string             `json:"nationality"  bson:"nationality"`
+	Gender       string             `json:"gender"       bson:"gender"`
+	Sport        string             `json:"sport"        bson:"sport"`
+	Sponsors     []string           `json:"sponsors"     bson:"sponsors"`
+	CurrentTeam  string             `json:"current_team" bson:"current_team"`
+	Height       int                `json:"height"       bson:"height"`
+	Weight       int                `json:"weight"       bson:"weight"`
+	Achievements string             `json:"achievements" bson:"achievements"`
+	Contact      string             `json:"contact"      bson:"contact"`
+}
