@@ -22,7 +22,7 @@ type User struct {
 	Org           primitive.ObjectID   `json:"org,omitempty"       bson:"org"`
 	Athlete       primitive.ObjectID   `json:"athlete,omitempty"   bson:"athlete"`
 	Sport         []primitive.ObjectID `json:"sport,omitempty"     bson:"sport"`
-	Conversations []primitive.ObjectID `json:"conversations"       bson:"conversations"`
+	Conversations primitive.ObjectID   `json:"conversations"       bson:"conversations"`
 	Likes         []primitive.ObjectID `json:"likes,omitempty"     bson:"likes"`
 	Followers     []primitive.ObjectID `json:"followers,omitempty" bson:"followers"`
 	Following     []primitive.ObjectID `json:"following,omitempty" bson:"following"`

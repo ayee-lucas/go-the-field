@@ -79,22 +79,25 @@ func SignUp(ctx *fiber.Ctx) error {
 			JSON(fiber.Map{"error": "Error Saving User", "message": "Email already exists"})
 	}
 
+	conversationsId := primitive.NewObjectID()
+
 	user := &models.User{
-		Username:  body.Username,
-		Email:     body.Email,
-		Password:  body.Password,
-		Online:    false,
-		Finished:  false,
-		Role:      "user",
-		Bio:       "No bio yet",
-		Verified:  false,
-		Org:       primitive.ObjectID{},
-		Likes:     []primitive.ObjectID{},
-		Followers: []primitive.ObjectID{},
-		Posts:     []primitive.ObjectID{},
-		Picture:   models.Picture{},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		Username:      body.Username,
+		Email:         body.Email,
+		Password:      body.Password,
+		Online:        false,
+		Finished:      false,
+		Role:          "user",
+		Bio:           "No bio yet",
+		Verified:      false,
+		Conversations: conversationsId,
+		Org:           primitive.ObjectID{},
+		Likes:         []primitive.ObjectID{},
+		Followers:     []primitive.ObjectID{},
+		Posts:         []primitive.ObjectID{},
+		Picture:       models.Picture{},
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	}
 
 	id, err := repository.SaveUser(user)
