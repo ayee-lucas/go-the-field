@@ -30,20 +30,17 @@ func GetUserId(ctx *fiber.Ctx) error {
 	param := ctx.Params("id")
 
 	_, err := primitive.ObjectIDFromHex(param)
-
 	if err != nil {
 		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Invalid Id"})
 	}
 
 	user, err := repository.GetUserById(param)
-
 	if err != nil {
 		return ctx.Status(500).
 			JSON(fiber.Map{"error": err.Error(), "message": "Failed to get user"})
 	}
 
 	return ctx.Status(200).JSON(fiber.Map{"message": "user found", "user": user})
-
 }
 
 type finishProfile struct {
@@ -56,8 +53,7 @@ func FinishProfile(ctx *fiber.Ctx) error {
 	var user *models.User
 
 	param := ctx.Params("id")
-	id, err := primitive.ObjectIDFromHex(param)
-
+	_, err := primitive.ObjectIDFromHex(param)
 	if err != nil {
 		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Invalid Id"})
 	}
@@ -68,7 +64,9 @@ func FinishProfile(ctx *fiber.Ctx) error {
 			JSON(fiber.Map{"error": err.Error(), "message": "Failed to get user"})
 	}
 
-	if user.Finished {
+	profile, err := repository.GetUserProfileById(user.ProfileID.Hex())
+
+	if profile.Finished {
 		return ctx.Status(400).
 			JSON(fiber.Map{"error": "User already finished profile", "message": "User already finished profile"})
 	}
@@ -102,9 +100,13 @@ func FinishProfile(ctx *fiber.Ctx) error {
 		Value: true,
 	}}
 
-	result, err = repository.UpdateUser(id, data)
+	result, err = repository.UpdateProfile(user.ProfileID, data)
+	if err != nil {
+		return ctx.Status(500).
+			JSON(fiber.Map{"error": err.Error(), "message": "Error updating profile"})
+	}
 
-	return ctx.Status(200).JSON(fiber.Map{"message": "success", "user": result})
+	return ctx.Status(200).JSON(fiber.Map{"message": "success", "Profile": result})
 }
 
 type updatePicture struct {
@@ -127,14 +129,12 @@ func UpdatePicture(ctx *fiber.Ctx) error {
 	sessionId := sessionHeader[7:]
 
 	_, err := auth.GetSession(sessionId)
-
 	if err != nil {
 		return ctx.Status(500).
 			JSON(fiber.Map{"error": "Failed to get session", "message": err.Error(), "status": "unauthenticated"})
 	}
 
 	id, err := primitive.ObjectIDFromHex(param)
-
 	if err != nil {
 		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Invalid Id"})
 	}
@@ -201,27 +201,31 @@ func UpdatePicture(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(200).JSON(fiber.Map{"message": "success", "user": result})
-
 }
 
-type requestOrg struct {
+type requestTeam struct {
 	Country  string   `json:"country"  bson:"country"`
 	Email    string   `json:"email"    bson:"email"`
 	City     string   `json:"city"     bson:"city"`
-	Website  string   `json:"website"  bson:"website"`
-	Sport    []string `json:"sport"    bson:"sport"`
+	Links    []string `json:"links"    bson:"links"`
+	Sport    string   `json:"sport"    bson:"sport"`
 	Sponsors []string `json:"sponsors" bson:"sponsor"`
 }
 
-func RequestOrg(ctx *fiber.Ctx) error {
-	body := new(requestOrg)
+func RequestTeam(ctx *fiber.Ctx) error {
+	body := new(requestTeam)
 
 	param := ctx.Params("id")
 
-	paramID, err := primitive.ObjectIDFromHex(param)
-
+	_, err := primitive.ObjectIDFromHex(param)
 	if err != nil {
 		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Invalid Id"})
+	}
+
+	user, err := repository.GetUserById(param)
+	if err != nil {
+		return ctx.Status(500).
+			JSON(fiber.Map{"error": err.Error(), "message": "Failed to get user"})
 	}
 
 	err = ctx.BodyParser(body)
@@ -254,43 +258,48 @@ func RequestOrg(ctx *fiber.Ctx) error {
 
 	body.Email = strings.ToLower(body.Email)
 
-	user, err := repository.GetUserById(param)
+	parsedId := user.ProfileID.Hex()
 
+	profile, err := repository.GetUserProfileById(parsedId)
 	if err != nil {
 		return ctx.Status(500).
-			JSON(fiber.Map{"error": err.Error(), "message": "Failed to get user"})
+			JSON(fiber.Map{"error": err.Error(), "message": "Failed to get profile"})
 	}
 
-	if !user.Org.IsZero() {
+	if !profile.Type.IsZero() {
 		return ctx.Status(500).
-			JSON(fiber.Map{"error": "Error adding org to user", "message": "This user already has an org attached"})
+			JSON(fiber.Map{"error": "Error adding org to user", "message": "This user already has an org or athlete attached"})
 	}
 
-	org := &models.Org{
+	team := &models.Team{
 		Official: false,
 		Country:  body.Country,
 		Email:    body.Email,
 		City:     body.City,
-		Website:  body.Website,
+		Links:    body.Links,
 		Sport:    body.Sport,
 		Sponsors: body.Sponsors,
 	}
 
-	orgId, err := repository.SaveOrg(org)
-
+	teamId, err := repository.SaveTeam(team)
 	if err != nil {
 		return ctx.Status(500).
 			JSON(fiber.Map{"error": err.Error(), "message": "Failed to save org"})
 	}
 
-	userUpdateData := bson.D{{Key: "org", Value: orgId}}
+	parsedTeamId, err := primitive.ObjectIDFromHex(teamId)
+	if err != nil {
+		return ctx.Status(500).
+			JSON(fiber.Map{"error": err.Error(), "message": "Failed to delete org"})
+	}
 
-	_, err = repository.UpdateUser(paramID, userUpdateData)
+	profileUpdateData := bson.D{{Key: "type", Value: parsedTeamId}}
+
+	_, err = repository.UpdateProfile(user.ProfileID, profileUpdateData)
 
 	if err != nil {
 
-		resDeleteOrg, err := repository.DeleteOrgById(orgId)
-
+		resDeleteOrg, err := repository.DeleteOrgById(teamId)
 		if err != nil {
 			return ctx.Status(500).
 				JSON(fiber.Map{"error": err.Error(), "message": "Failed to delete org"})
@@ -301,14 +310,14 @@ func RequestOrg(ctx *fiber.Ctx) error {
 
 	return ctx.Status(200).JSON(fiber.Map{
 		"result": fiber.Map{
-			"message": "Org added successfully",
-			"id":      orgId,
-			"org":     org,
+			"message": "Team added successfully",
+			"id":      teamId,
+			"team":    team,
 		},
 	})
 }
 
-type saveOrg struct {
+type requestAthlete struct {
 	Nationality  string   `json:"nationality"  bson:"nationality"`
 	Gender       string   `json:"gender"       bson:"gender"`
 	Sport        string   `json:"sport"        bson:"sport"`
@@ -321,15 +330,19 @@ type saveOrg struct {
 }
 
 func RequestAthlete(ctx *fiber.Ctx) error {
-
-	body := new(saveOrg)
+	body := new(requestAthlete)
 
 	param := ctx.Params("id")
 
-	paramId, err := primitive.ObjectIDFromHex(param)
-
+	_, err := primitive.ObjectIDFromHex(param)
 	if err != nil {
 		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Invalid Id"})
+	}
+
+	user, err := repository.GetUserById(param)
+	if err != nil {
+		return ctx.Status(500).
+			JSON(fiber.Map{"error": err.Error(), "message": "Failed to get user"})
 	}
 
 	err = ctx.BodyParser(body)
@@ -374,21 +387,16 @@ func RequestAthlete(ctx *fiber.Ctx) error {
 			JSON(fiber.Map{"error": err.Error(), "message": "Your email is not valid"})
 	}
 
-	user, err := repository.GetUserById(param)
-
+	parsedId := user.ProfileID.Hex()
+	profile, err := repository.GetUserProfileById(parsedId)
 	if err != nil {
 		return ctx.Status(500).
-			JSON(fiber.Map{"error": err.Error(), "message": "Failed to get user"})
+			JSON(fiber.Map{"error": err.Error(), "message": "Failed to get profile"})
 	}
 
-	if !user.Org.IsZero() {
+	if !profile.Type.IsZero() {
 		return ctx.Status(500).
-			JSON(fiber.Map{"error": "Error adding info to user", "message": "This user already has an org attached"})
-	}
-
-	if !user.Athlete.IsZero() {
-		return ctx.Status(500).
-			JSON(fiber.Map{"error": "Error adding info to user", "message": "This user already has athlete info attached"})
+			JSON(fiber.Map{"error": "Error adding info to user", "message": "This user already has an org or athlete attached"})
 	}
 
 	athlete := &models.Athlete{
@@ -404,20 +412,18 @@ func RequestAthlete(ctx *fiber.Ctx) error {
 	}
 
 	athleteId, err := repository.SaveAthlete(athlete)
-
 	if err != nil {
 		return ctx.Status(500).
 			JSON(fiber.Map{"error": err.Error(), "message": "Failed to save athlete"})
 	}
 
-	userUpdateData := bson.D{{Key: "athlete", Value: athleteId}}
+	profileUpdateData := bson.D{{Key: "athlete", Value: athleteId}}
 
-	_, err = repository.UpdateUser(paramId, userUpdateData)
+	_, err = repository.UpdateProfile(profile.ID, profileUpdateData)
 
 	if err != nil {
 
 		resultAthlete, err := repository.DeleteAthleteById(athleteId)
-
 		if err != nil {
 			return ctx.Status(500).
 				JSON(fiber.Map{"error": err.Error(), "message": "Failed to delete athlete"})
@@ -433,5 +439,4 @@ func RequestAthlete(ctx *fiber.Ctx) error {
 			"athlete":  athlete,
 		},
 	})
-
 }

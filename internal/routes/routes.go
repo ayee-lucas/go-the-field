@@ -8,13 +8,12 @@ import (
 )
 
 func SetupRoutes(app *fiber.App) {
-
 	apiGroup := app.Group("/api")
 	{
 		userGroup := apiGroup.Group("/users", middleware.EnsureAuth)
 		userGroup.Get("/", handler.GetUsers)
 		userGroup.Get("/:id", handler.GetUserId)
-		userGroup.Post("/request/org/:id", handler.RequestOrg)
+		userGroup.Post("/request/team/:id", handler.RequestTeam)
 		userGroup.Post("/request/athl/:id", handler.RequestAthlete)
 		userGroup.Put("/finish/:id", handler.FinishProfile)
 		userGroup.Put("/picture/:id", handler.UpdatePicture)
@@ -26,9 +25,5 @@ func SetupRoutes(app *fiber.App) {
 		accountGroup.Post("/logout", handler.SignOut)
 		accountGroup.Get("/me", handler.SessionInfo)
 
-	}
-	{
-		postGroup := apiGroup.Group("/posts", middleware.EnsureAuth)
-		postGroup.Post("/upload", handler.UploadPost)
 	}
 }

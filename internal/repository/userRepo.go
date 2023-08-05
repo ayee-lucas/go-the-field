@@ -15,13 +15,11 @@ import (
 )
 
 func GetAllUsers() ([]models.User, error) {
-
 	coll := db.GetDBCollection("users")
 
 	users := make([]models.User, 0)
 
 	cursor, err := coll.Find(context.Background(), bson.M{})
-
 	if err != nil {
 		return nil, err
 	}
@@ -37,11 +35,9 @@ func GetAllUsers() ([]models.User, error) {
 
 	}
 	return users, nil
-
 }
 
 func GetUserById(id string) (*models.User, error) {
-
 	coll := db.GetDBCollection("users")
 
 	user := &models.User{}
@@ -63,13 +59,31 @@ func GetUserById(id string) (*models.User, error) {
 	return user, nil
 }
 
+func GetUserProfileById(id string) (*models.Profile, error) {
+	coll := db.GetDBCollection("profiles")
+
+	profile := &models.Profile{}
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+
+	err = coll.FindOne(context.Background(), bson.M{"_id": objectID}).Decode(profile)
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("Profile not found")
+		}
+		return nil, err
+	}
+
+	return profile, nil
+}
+
 func GetByUsername(username string) (*models.User, error) {
 	coll := db.GetDBCollection("users")
 
 	user := &models.User{}
 
 	err := coll.FindOne(context.Background(), bson.M{"username": username}).Decode(user)
-
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("User not found")
@@ -85,7 +99,6 @@ func GetByEmail(email string) (*models.User, error) {
 	user := &models.User{}
 
 	err := coll.FindOne(context.Background(), bson.M{"email": email}).Decode(user)
-
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("User not found")
@@ -94,7 +107,6 @@ func GetByEmail(email string) (*models.User, error) {
 	}
 
 	return user, nil
-
 }
 
 func SaveUser(users *models.User) (string, error) {
@@ -110,13 +122,24 @@ func SaveUser(users *models.User) (string, error) {
 			Options: options.Index().SetUnique(true),
 		},
 	})
-
 	if err != nil {
 		return "", fmt.Errorf("failed to create indexes: %v", err)
 	}
 
 	result, err := coll.InsertOne(context.Background(), users)
+	if err != nil {
+		return "", err
+	}
 
+	id := result.InsertedID.(primitive.ObjectID).Hex()
+
+	return id, nil
+}
+
+func SaveProfile(profile *models.Profile) (string, error) {
+	coll := db.GetDBCollection("profiles")
+
+	result, err := coll.InsertOne(context.Background(), profile)
 	if err != nil {
 		return "", err
 	}
@@ -134,7 +157,6 @@ func UpdateUser(id primitive.ObjectID, update bson.D) (*mongo.UpdateResult, erro
 	data := bson.D{{Key: "$set", Value: update}}
 
 	result, err := coll.UpdateOne(context.Background(), filter, data)
-
 	if err != nil {
 		return nil, err
 	}
@@ -142,11 +164,25 @@ func UpdateUser(id primitive.ObjectID, update bson.D) (*mongo.UpdateResult, erro
 	return result, nil
 }
 
-func SaveOrg(org *models.Org) (string, error) {
-	coll := db.GetDBCollection("org")
+func UpdateProfile(id primitive.ObjectID, update bson.D) (*mongo.UpdateResult, error) {
+	coll := db.GetDBCollection("profiles")
+
+	filter := bson.D{{Key: "_id", Value: id}}
+
+	data := bson.D{{Key: "$set", Value: update}}
+
+	result, err := coll.UpdateOne(context.Background(), filter, data)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, err
+}
+
+func SaveTeam(org *models.Team) (string, error) {
+	coll := db.GetDBCollection("teams")
 
 	result, err := coll.InsertOne(context.Background(), org)
-
 	if err != nil {
 		return "", err
 	}
@@ -156,13 +192,12 @@ func SaveOrg(org *models.Org) (string, error) {
 	return id, nil
 }
 
-func GetOrgById(id string) (*models.Org, error) {
-	coll := db.GetDBCollection("org")
+func GetOrgById(id string) (*models.Team, error) {
+	coll := db.GetDBCollection("teams")
 
-	org := &models.Org{}
+	org := &models.Team{}
 
 	objectId, err := primitive.ObjectIDFromHex(id)
-
 	if err != nil {
 		return nil, err
 	}
@@ -177,17 +212,14 @@ func GetOrgById(id string) (*models.Org, error) {
 	}
 
 	return org, nil
-
 }
 
-func GetOrgByEmail(email string) (*models.Org, error) {
+func GetOrgByEmail(email string) (*models.Team, error) {
+	coll := db.GetDBCollection("teams")
 
-	coll := db.GetDBCollection("org")
-
-	org := &models.Org{}
+	org := &models.Team{}
 
 	err := coll.FindOne(context.Background(), bson.M{"email": email}).Decode(org)
-
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("Org not found")
@@ -203,7 +235,6 @@ func DeleteOrgById(id string) (*mongo.DeleteResult, error) {
 	filter := bson.M{"_id": id}
 
 	res, err := coll.DeleteOne(context.Background(), filter)
-
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +252,6 @@ func SaveAthlete(athlete *models.Athlete) (string, error) {
 	coll := db.GetDBCollection("athlete")
 
 	result, err := coll.InsertOne(context.Background(), athlete)
-
 	if err != nil {
 		return "", err
 	}
@@ -229,7 +259,6 @@ func SaveAthlete(athlete *models.Athlete) (string, error) {
 	id := result.InsertedID.(primitive.ObjectID).Hex()
 
 	return id, nil
-
 }
 
 func DeleteAthleteById(id string) (*mongo.DeleteResult, error) {
@@ -238,7 +267,6 @@ func DeleteAthleteById(id string) (*mongo.DeleteResult, error) {
 	filter := bson.M{"_id": id}
 
 	res, err := coll.DeleteOne(context.Background(), filter)
-
 	if err != nil {
 		return nil, err
 	}
@@ -250,5 +278,4 @@ func DeleteAthleteById(id string) (*mongo.DeleteResult, error) {
 	}
 
 	return res, nil
-
 }
