@@ -3,25 +3,24 @@ package main
 import (
 	"os"
 
-	"github.com/alopez-2018459/go-the-field/internal/db"
-	"github.com/alopez-2018459/go-the-field/internal/routes"
-	"github.com/alopez-2018459/go-the-field/internal/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+
+	"github.com/alopez-2018459/go-the-field/internal/db"
+	"github.com/alopez-2018459/go-the-field/internal/routes"
+	"github.com/alopez-2018459/go-the-field/internal/utils"
 )
 
 func main() {
 	err := run()
-
 	if err != nil {
 		panic(err)
 	}
 }
 
 func run() error {
-
 	err := utils.LoadEnv()
 	if err != nil {
 		return err
@@ -52,5 +51,4 @@ func run() error {
 	app.Listen(":" + port)
 
 	return nil
-
 }

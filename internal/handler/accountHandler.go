@@ -14,7 +14,7 @@ import (
 	"github.com/alopez-2018459/go-the-field/internal/utils/validations"
 )
 
-type createUser struct {
+type signUpBody struct {
 	Username  string    `json:"username"   bson:"username"`
 	Email     string    `json:"email"      bson:"email,"`
 	Password  string    `json:"password"   bson:"password"`
@@ -23,7 +23,7 @@ type createUser struct {
 }
 
 func SignUp(ctx *fiber.Ctx) error {
-	body := new(createUser)
+	body := new(signUpBody)
 
 	err := ctx.BodyParser(body)
 	if err != nil {
@@ -79,28 +79,42 @@ func SignUp(ctx *fiber.Ctx) error {
 			JSON(fiber.Map{"error": "Error Saving User", "message": "Email already exists"})
 	}
 
-	conversationsId := primitive.NewObjectID()
+	userProfile := &models.Profile{
+		Name:           "",
+		Bio:            "",
+		PreferedSports: []string{},
+		Online:         false,
+		Finished:       false,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+	}
 
-	user := &models.User{
+	idProfile, err := repository.SaveProfile(userProfile)
+	if err != nil {
+		return ctx.Status(500).
+			JSON(fiber.Map{"error": "Failed to save user", "message": err.Error()})
+	}
+
+	parsedProfileId, err := primitive.ObjectIDFromHex(idProfile)
+	if err != nil {
+		return ctx.Status(500).
+			JSON(fiber.Map{"error": err.Error(), "message": "Fatal Error Parsing id"})
+	}
+
+	account := &models.User{
 		Username:      body.Username,
 		Email:         body.Email,
+		EmailVerified: false,
 		Password:      body.Password,
-		Online:        false,
-		Finished:      false,
 		Role:          "user",
-		Bio:           "No bio yet",
 		Verified:      false,
-		Conversations: conversationsId,
-		Org:           primitive.ObjectID{},
-		Likes:         []primitive.ObjectID{},
-		Followers:     []primitive.ObjectID{},
-		Posts:         []primitive.ObjectID{},
 		Picture:       models.Picture{},
+		ProfileID:     parsedProfileId,
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
 	}
 
-	id, err := repository.SaveUser(user)
+	id, err := repository.SaveUser(account)
 	if err != nil {
 		return ctx.Status(500).
 			JSON(fiber.Map{"error": "Failed to save user", "message": err.Error()})
@@ -110,7 +124,7 @@ func SignUp(ctx *fiber.Ctx) error {
 		"result": fiber.Map{
 			"message": "User created successfully",
 			"id":      id,
-			"user":    user,
+			"user":    account,
 		},
 	})
 }
@@ -121,7 +135,6 @@ type loginUser struct {
 }
 
 func SignIn(ctx *fiber.Ctx) error {
-
 	body := new(loginUser)
 
 	var sessionId string
@@ -178,7 +191,6 @@ func SignIn(ctx *fiber.Ctx) error {
 }
 
 func SignOut(ctx *fiber.Ctx) error {
-
 	sessionHeader := ctx.Get("Authorization")
 
 	if sessionHeader == "" || len(sessionHeader) < 8 || sessionHeader[:7] != "Bearer " {
@@ -188,18 +200,15 @@ func SignOut(ctx *fiber.Ctx) error {
 	sessionId := sessionHeader[7:]
 
 	idDeleted, err := auth.SignOut(sessionId)
-
 	if err != nil {
 		return ctx.Status(500).
 			JSON(fiber.Map{"error": "Failed to sign out", "message": err.Error()})
 	}
 
 	return ctx.Status(200).JSON(fiber.Map{"message": "Signed out successfully", "id": idDeleted})
-
 }
 
 func SessionInfo(ctx *fiber.Ctx) error {
-
 	sessionHeader := ctx.Get("Authorization")
 
 	if sessionHeader == "" || len(sessionHeader) < 8 || sessionHeader[:7] != "Bearer " {
@@ -209,12 +218,10 @@ func SessionInfo(ctx *fiber.Ctx) error {
 	sessionId := sessionHeader[7:]
 
 	user, err := auth.GetSession(sessionId)
-
 	if err != nil {
 		return ctx.Status(500).
 			JSON(fiber.Map{"error": "Failed to get session", "message": err.Error(), "status": "unauthenticated"})
 	}
 
 	return ctx.Status(200).JSON(fiber.Map{"status": "authenticated", "user": user})
-
 }

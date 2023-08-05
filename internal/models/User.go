@@ -8,27 +8,34 @@ import (
 
 // omitempty is used to omit empty fields in json
 type User struct {
-	ID            primitive.ObjectID   `json:"id,omitempty"        bson:"_id,omitempty"`
-	Name          string               `json:"name,omitempty"      bson:"name"`
-	Username      string               `json:"username"            bson:"username"`
-	Email         string               `json:"email"               bson:"email"`
-	Password      string               `json:"password"            bson:"password"`
-	Online        bool                 `json:"online,omitempty"    bson:"online"`
-	Finished      bool                 `json:"finished"            bson:"finished"`
-	Role          string               `json:"role"                bson:"role"          default:"user"`
-	Bio           string               `json:"bio,omitempty"       bson:"bio"`
-	Verified      bool                 `json:"verified"            bson:"verified"`
-	Picture       Picture              `json:"picture,omitempty"   bson:"picture"`
-	Org           primitive.ObjectID   `json:"org,omitempty"       bson:"org"`
-	Athlete       primitive.ObjectID   `json:"athlete,omitempty"   bson:"athlete"`
-	Sport         []primitive.ObjectID `json:"sport,omitempty"     bson:"sport"`
-	Conversations primitive.ObjectID   `json:"conversations"       bson:"conversations"`
-	Likes         []primitive.ObjectID `json:"likes,omitempty"     bson:"likes"`
-	Followers     []primitive.ObjectID `json:"followers,omitempty" bson:"followers"`
-	Following     []primitive.ObjectID `json:"following,omitempty" bson:"following"`
-	Posts         []primitive.ObjectID `json:"posts,omitempty"     bson:"posts"`
-	CreatedAt     time.Time            `json:"created_at"          bson:"created_at"`
-	UpdatedAt     time.Time            `json:"updated_at"          bson:"updated_at"`
+	ID            primitive.ObjectID `json:"id,omitempty"      bson:"_id,omitempty"`
+	Username      string             `json:"username"          bson:"username"`
+	Email         string             `json:"email"             bson:"email"`
+	EmailVerified bool               `json:"email_verified"    bson:"email_verified"`
+	Password      string             `json:"password"          bson:"password"`
+	Role          string             `json:"role"              bson:"role"`
+	Verified      bool               `json:"verified"          bson:"verified"`
+	Picture       Picture            `json:"picture,omitempty" bson:"picture"`
+	ProfileID     primitive.ObjectID `json:"profile_id"        bson:"profile_id"`
+	CreatedAt     time.Time          `json:"created_at"        bson:"created_at"`
+	UpdatedAt     time.Time          `json:"updated_at"        bson:"updated_at"`
+}
+
+type Profile struct {
+	ID             primitive.ObjectID `json:"id,omitempty"        bson:"_id,omitempty"`
+	Name           string             `json:"name,omitempty"      bson:"name"`
+	Bio            string             `json:"bio,omitempty"       bson:"bio"`
+	Type           primitive.ObjectID `json:"type,omitempty"      bson:"type"`
+	PreferedSports []string           `json:"prefered_sports"     bson:"prefered_sports"`
+	Online         bool               `json:"online,omitempty"    bson:"online"`
+	Finished       bool               `json:"finished"            bson:"finished"`
+	Followers      primitive.ObjectID `json:"followers,omitempty" bson:"followers"`
+	Following      primitive.ObjectID `json:"following,omitempty" bson:"following"`
+	Posts          primitive.ObjectID `json:"posts,omitempty"     bson:"posts"`
+	Likes          primitive.ObjectID `json:"likes,omitempty"     bson:"likes"`
+	Chats          primitive.ObjectID `json:"chats,omitempty"     bson:"chats"`
+	CreatedAt      time.Time          `json:"created_at"          bson:"created_at"`
+	UpdatedAt      time.Time          `json:"updated_at"          bson:"updated_at"`
 }
 
 type Picture struct {
@@ -36,14 +43,14 @@ type Picture struct {
 	PictureURL string `json:"pictureURL" bson:"pictureURL"`
 }
 
-type Org struct {
+type Team struct {
 	ID       primitive.ObjectID `json:"id,omitempty"       bson:"_id,omitempty"`
 	Official bool               `json:"official"           bson:"official"`
 	Country  string             `json:"country"            bson:"country"`
 	Email    string             `json:"email"              bson:"email"`
 	City     string             `json:"city"               bson:"city"`
-	Website  string             `json:"website,omitempty"  bson:"website"`
-	Sport    []string           `json:"sport"              bson:"sport"`
+	Links    []string           `json:"links,omitempty"    bson:"links"`
+	Sport    string             `json:"sport"              bson:"sport"`
 	Sponsors []string           `json:"sponsors,omitempty" bson:"sponsor"`
 }
 
