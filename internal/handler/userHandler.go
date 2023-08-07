@@ -293,7 +293,7 @@ func RequestTeam(ctx *fiber.Ctx) error {
 			JSON(fiber.Map{"error": err.Error(), "message": "Failed to delete org"})
 	}
 
-	profileUpdateData := bson.D{{Key: "type", Value: parsedTeamId}}
+	profileUpdateData := bson.D{{Key: "type_id", Value: parsedTeamId}}
 
 	_, err = repository.UpdateProfile(user.ProfileID, profileUpdateData)
 
