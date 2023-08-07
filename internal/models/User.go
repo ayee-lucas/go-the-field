@@ -22,20 +22,15 @@ type User struct {
 }
 
 type Profile struct {
-	ID             primitive.ObjectID `json:"id,omitempty"        bson:"_id,omitempty"`
-	Name           string             `json:"name,omitempty"      bson:"name"`
-	Bio            string             `json:"bio,omitempty"       bson:"bio"`
-	Type           primitive.ObjectID `json:"type,omitempty"      bson:"type"`
-	PreferedSports []string           `json:"prefered_sports"     bson:"prefered_sports"`
-	Online         bool               `json:"online,omitempty"    bson:"online"`
-	Finished       bool               `json:"finished"            bson:"finished"`
-	Followers      primitive.ObjectID `json:"followers,omitempty" bson:"followers"`
-	Following      primitive.ObjectID `json:"following,omitempty" bson:"following"`
-	Posts          primitive.ObjectID `json:"posts,omitempty"     bson:"posts"`
-	Likes          primitive.ObjectID `json:"likes,omitempty"     bson:"likes"`
-	Chats          primitive.ObjectID `json:"chats,omitempty"     bson:"chats"`
-	CreatedAt      time.Time          `json:"created_at"          bson:"created_at"`
-	UpdatedAt      time.Time          `json:"updated_at"          bson:"updated_at"`
+	ID             primitive.ObjectID `json:"id,omitempty"     bson:"_id,omitempty"`
+	Name           string             `json:"name,omitempty"   bson:"name"`
+	Bio            string             `json:"bio,omitempty"    bson:"bio"`
+	Type           primitive.ObjectID `json:"type,omitempty"   bson:"type_id"`
+	PreferedSports []string           `json:"prefered_sports"  bson:"prefered_sports"`
+	Online         bool               `json:"online,omitempty" bson:"online"`
+	Finished       bool               `json:"finished"         bson:"finished"`
+	CreatedAt      time.Time          `json:"created_at"       bson:"created_at"`
+	UpdatedAt      time.Time          `json:"updated_at"       bson:"updated_at"`
 }
 
 type Picture struct {
@@ -44,14 +39,16 @@ type Picture struct {
 }
 
 type Team struct {
-	ID       primitive.ObjectID `json:"id,omitempty"       bson:"_id,omitempty"`
-	Official bool               `json:"official"           bson:"official"`
-	Country  string             `json:"country"            bson:"country"`
-	Email    string             `json:"email"              bson:"email"`
-	City     string             `json:"city"               bson:"city"`
-	Links    []string           `json:"links,omitempty"    bson:"links"`
-	Sport    string             `json:"sport"              bson:"sport"`
-	Sponsors []string           `json:"sponsors,omitempty" bson:"sponsor"`
+	ID        primitive.ObjectID `json:"id,omitempty"       bson:"_id,omitempty"`
+	Official  bool               `json:"official"           bson:"official"`
+	Country   string             `json:"country"            bson:"country"`
+	Email     string             `json:"email"              bson:"email"`
+	City      string             `json:"city"               bson:"city"`
+	Links     []string           `json:"links,omitempty"    bson:"links"`
+	Sport     string             `json:"sport"              bson:"sport"`
+	Sponsors  []string           `json:"sponsors,omitempty" bson:"sponsor"`
+	CreatedAt time.Time          `json:"created_at"         bson:"created_at"`
+	UpdatedAt time.Time          `json:"updated_at"         bson:"updated_at"`
 }
 
 type Athlete struct {
@@ -65,4 +62,6 @@ type Athlete struct {
 	Weight       int                `json:"weight"       bson:"weight"`
 	Achievements string             `json:"achievements" bson:"achievements"`
 	Contact      string             `json:"contact"      bson:"contact"`
+	CreatedAt    time.Time          `json:"created_at"   bson:"created_at"`
+	UpdatedAt    time.Time          `json:"updated_at"   bson:"updated_at"`
 }
