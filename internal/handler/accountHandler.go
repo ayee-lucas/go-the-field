@@ -225,3 +225,69 @@ func SessionInfo(ctx *fiber.Ctx) error {
 
 	return ctx.Status(200).JSON(fiber.Map{"status": "authenticated", "user": user})
 }
+
+/**
+*
+* 	ADMIN LOGIN
+*
+ */
+
+func SignInAdmin(ctx *fiber.Ctx) error {
+	body := new(loginUser)
+
+	var sessionId string
+
+	err := ctx.BodyParser(body)
+	if err != nil {
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": err.Error(), "message": "Failed to parse request body"})
+	}
+
+	err = validations.IsStringEmpty(body.Username)
+	if err != nil {
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": err.Error(), "message": "Username is required"})
+	}
+
+	err = validations.IsStringEmpty(body.Password)
+	if err != nil {
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": err.Error(), "message": "Password is required"})
+	}
+
+	usernameExist, err := repository.GetByUsername(body.Username)
+	if usernameExist == nil {
+		return ctx.Status(400).
+			JSON(fiber.Map{"error": err.Error(), "message": "This username does not exist"})
+	}
+
+	err = validations.VerifyPassword(body.Password, usernameExist.Password)
+
+	if err != nil {
+		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Wrong Password"})
+	}
+
+	if usernameExist.Role != "ADMIN" {
+		return ctx.Status(401).JSON(fiber.Map{"error": "Unauthorized", "message": "You are not an ADMIN"})
+	}
+
+	userSession := &models.UserSession{
+		Sub:      usernameExist.ID,
+		Username: usernameExist.Username,
+		Email:    usernameExist.Email,
+		Role:     usernameExist.Role,
+		Picture:  usernameExist.Picture,
+	}
+
+	sessionId, err = auth.GenerateSession(userSession)
+
+	if err != nil {
+		return ctx.Status(500).
+			JSON(fiber.Map{"error": "Failed to generate session", "message": err.Error()})
+	}
+
+	ctx.Response().Header.Set("Authorization", fmt.Sprintf("Bearer %s", sessionId))
+
+	return ctx.Status(200).
+		JSON(fiber.Map{"message": "Logged in successfully", "session_id": sessionId})
+}
