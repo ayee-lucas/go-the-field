@@ -26,4 +26,15 @@ func SetupRoutes(app *fiber.App) {
 		accountGroup.Get("/me", handler.SessionInfo)
 
 	}
+
+	/**
+	 * 	ADMIN PORTAL ROUTES
+	 * 	Routes for the admin portal angular app
+	 **/
+	adminGroup := app.Group("/admin")
+	{
+		accountAdmin := adminGroup.Group("/account")
+		accountAdmin.Post("login")
+
+	}
 }

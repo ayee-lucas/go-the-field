@@ -11,19 +11,28 @@ import (
 	"github.com/alopez-2018459/go-the-field/internal/auth"
 	"github.com/alopez-2018459/go-the-field/internal/models"
 	"github.com/alopez-2018459/go-the-field/internal/repository"
+	"github.com/alopez-2018459/go-the-field/internal/responses"
 	"github.com/alopez-2018459/go-the-field/internal/utils/validations"
+)
+
+const (
+	TAG     = "[USER]"
+	MESSAGE = "message"
+	ERROR   = "error"
+	DATA    = "data"
 )
 
 func GetUsers(ctx *fiber.Ctx) error {
 	users, err := repository.GetAllUsers()
 	if err != nil {
+
 		return ctx.Status(500).
-			JSON(fiber.Map{"error": "Failed to retrieve users", "message": err.Error()})
+			JSON(fiber.Map{ERROR: responses.DATA_RETRIEVAL + TAG, MESSAGE: err.Error()})
 	}
 	if len(users) == 0 {
-		return ctx.Status(404).JSON(fiber.Map{"error": "No users found"})
+		return ctx.Status(404).JSON(fiber.Map{ERROR: responses.DATA_NOT_FOUND + TAG, MESSAGE: responses.DATA_NOT_FOUND_MESSAGE + TAG})
 	}
-	return ctx.Status(200).JSON(users)
+	return ctx.Status(200).JSON(fiber.Map{MESSAGE: responses.OK, DATA: users})
 }
 
 func GetUserId(ctx *fiber.Ctx) error {
@@ -31,16 +40,16 @@ func GetUserId(ctx *fiber.Ctx) error {
 
 	_, err := primitive.ObjectIDFromHex(param)
 	if err != nil {
-		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Invalid Id"})
+		return ctx.Status(400).JSON(fiber.Map{ERROR: err.Error(), MESSAGE: responses.INVALID_ID + TAG})
 	}
 
 	user, err := repository.GetUserById(param)
 	if err != nil {
 		return ctx.Status(500).
-			JSON(fiber.Map{"error": err.Error(), "message": "Failed to get user"})
+			JSON(fiber.Map{ERROR: err.Error(), MESSAGE: responses.DATA_RETRIEVAL + TAG})
 	}
 
-	return ctx.Status(200).JSON(fiber.Map{"message": "user found", "user": user})
+	return ctx.Status(200).JSON(fiber.Map{MESSAGE: responses.OK, DATA: user })
 }
 
 type finishProfile struct {
@@ -55,20 +64,24 @@ func FinishProfile(ctx *fiber.Ctx) error {
 	param := ctx.Params("id")
 	_, err := primitive.ObjectIDFromHex(param)
 	if err != nil {
-		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Invalid Id"})
+		return ctx.Status(400).JSON(fiber.Map{ERROR: err.Error(), MESSAGE: responses.INVALID_ID + TAG})
 	}
 
 	user, err = repository.GetUserById(param)
 	if err != nil {
 		return ctx.Status(500).
-			JSON(fiber.Map{"error": err.Error(), "message": "Failed to get user"})
+			JSON(fiber.Map{ERROR: err.Error(), MESSAGE: responses.DATA_RETRIEVAL + TAG})
 	}
 
 	profile, err := repository.GetUserProfileById(user.ProfileID.Hex())
 
+	if err != nil {
+		return ctx.Status(404).JSON(fiber.Map{ERROR: err.Error(), MESSAGE: responses.DATA_NOT_FOUND + TAG + TAG})
+	}
+
 	if profile.Finished {
-		return ctx.Status(400).
-			JSON(fiber.Map{"error": "User already finished profile", "message": "User already finished profile"})
+		return ctx.Status(409).
+			JSON(fiber.Map{ERROR: "User already finished profile", MESSAGE: "User already finished profile"})
 	}
 
 	body := new(finishProfile)
