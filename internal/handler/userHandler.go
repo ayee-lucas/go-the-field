@@ -16,7 +16,12 @@ import (
 )
 
 const (
-	TAG     = "[USER]"
+	/** Tags */
+	TAG      = "[USER]"
+	TAG_NAME = "[NAME]"
+	TAG_BIO  = "[BIO]"
+
+	/** GLOBAL */
 	MESSAGE = "message"
 	ERROR   = "error"
 	DATA    = "data"
@@ -40,16 +45,16 @@ func GetUserId(ctx *fiber.Ctx) error {
 
 	_, err := primitive.ObjectIDFromHex(param)
 	if err != nil {
-		return ctx.Status(400).JSON(fiber.Map{ERROR: err.Error(), MESSAGE: responses.INVALID_ID + TAG})
+		return ctx.Status(400).JSON(fiber.Map{ERROR: err.Error() + TAG, MESSAGE: responses.INVALID_ID})
 	}
 
 	user, err := repository.GetUserById(param)
 	if err != nil {
 		return ctx.Status(500).
-			JSON(fiber.Map{ERROR: err.Error(), MESSAGE: responses.DATA_RETRIEVAL + TAG})
+			JSON(fiber.Map{ERROR: err.Error() + TAG, MESSAGE: responses.DATA_RETRIEVAL})
 	}
 
-	return ctx.Status(200).JSON(fiber.Map{MESSAGE: responses.OK, DATA: user })
+	return ctx.Status(200).JSON(fiber.Map{MESSAGE: responses.OK, DATA: user})
 }
 
 type finishProfile struct {
@@ -64,24 +69,24 @@ func FinishProfile(ctx *fiber.Ctx) error {
 	param := ctx.Params("id")
 	_, err := primitive.ObjectIDFromHex(param)
 	if err != nil {
-		return ctx.Status(400).JSON(fiber.Map{ERROR: err.Error(), MESSAGE: responses.INVALID_ID + TAG})
+		return ctx.Status(400).JSON(fiber.Map{ERROR: err.Error() + TAG, MESSAGE: responses.INVALID_ID})
 	}
 
 	user, err = repository.GetUserById(param)
 	if err != nil {
 		return ctx.Status(500).
-			JSON(fiber.Map{ERROR: err.Error(), MESSAGE: responses.DATA_RETRIEVAL + TAG})
+			JSON(fiber.Map{ERROR: err.Error() + TAG, MESSAGE: responses.DATA_RETRIEVAL})
 	}
 
 	profile, err := repository.GetUserProfileById(user.ProfileID.Hex())
 
 	if err != nil {
-		return ctx.Status(404).JSON(fiber.Map{ERROR: err.Error(), MESSAGE: responses.DATA_NOT_FOUND + TAG + TAG})
+		return ctx.Status(404).JSON(fiber.Map{ERROR: err.Error() + TAG, MESSAGE: responses.DATA_NOT_FOUND})
 	}
 
 	if profile.Finished {
 		return ctx.Status(409).
-			JSON(fiber.Map{ERROR: "User already finished profile", MESSAGE: "User already finished profile"})
+			JSON(fiber.Map{ERROR: responses.PROFILE_FINISHED_ERROR + TAG, MESSAGE: responses.P_FINISHED_MESSAGE_ERROR})
 	}
 
 	body := new(finishProfile)
@@ -89,17 +94,17 @@ func FinishProfile(ctx *fiber.Ctx) error {
 	err = ctx.BodyParser(body)
 	if err != nil {
 		return ctx.Status(400).
-			JSON(fiber.Map{"error": "Failed to parse request body", "message": err.Error()})
+			JSON(fiber.Map{ERROR: responses.PARSE_BODY_ERROR + TAG, MESSAGE: responses.BODY_PARSE_MESSAGE})
 	}
 
 	err = validations.IsStringEmpty(body.Name)
 	if err != nil {
-		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Name is required"})
+		return ctx.Status(400).JSON(fiber.Map{ERROR: err.Error() + TAG, MESSAGE: responses.REQUIRED_FIELD + TAG_NAME})
 	}
 
 	err = validations.IsStringEmpty(body.Bio)
 	if err != nil {
-		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Bio is required"})
+		return ctx.Status(400).JSON(fiber.Map{ERROR: err.Error() + TAG, MESSAGE: responses.REQUIRED_FIELD + TAG_BIO})
 	}
 
 	data := bson.D{{
@@ -116,10 +121,10 @@ func FinishProfile(ctx *fiber.Ctx) error {
 	result, err = repository.UpdateProfile(user.ProfileID, data)
 	if err != nil {
 		return ctx.Status(500).
-			JSON(fiber.Map{"error": err.Error(), "message": "Error updating profile"})
+			JSON(fiber.Map{ERROR: responses.UPDATE_DATA_ERROR + TAG, MESSAGE: responses.P_UPDATE_ERROR})
 	}
 
-	return ctx.Status(200).JSON(fiber.Map{"message": "success", "Profile": result})
+	return ctx.Status(200).JSON(fiber.Map{MESSAGE: responses.OK, DATA: result})
 }
 
 type updatePicture struct {
@@ -136,7 +141,7 @@ func UpdatePicture(ctx *fiber.Ctx) error {
 	sessionHeader := ctx.Get("Authorization")
 
 	if sessionHeader == "" || len(sessionHeader) < 8 || sessionHeader[:7] != "Bearer " {
-		return ctx.Status(401).JSON(fiber.Map{"error": "Invalid header"})
+		return ctx.Status(401).JSON(fiber.Map{ERROR: responses.INVALID_HEADER_ERROR + TAG, MESSAGE: responses.UNAUTHORIZED_MESSAGE})
 	}
 
 	sessionId := sessionHeader[7:]
