@@ -17,14 +17,19 @@ import (
 
 const (
 	/** Tags */
-	TAG      = "[USER]"
-	TAG_NAME = "[NAME]"
-	TAG_BIO  = "[BIO]"
+	TAG             = "[USER]"
+	TAG_NAME        = "[NAME]"
+	TAG_BIO         = "[BIO]"
+	TAG_PICTURE     = "[PICTURE]"
+	TAG_PICTURE_KEY = "[PICTURE_KEY]"
+	TAG_PICTURE_URL = "[PICTURE_URL]"
 
 	/** GLOBAL */
-	MESSAGE = "message"
-	ERROR   = "error"
-	DATA    = "data"
+	MESSAGE         = "message"
+	ERROR           = "error"
+	DATA            = "data"
+	STATUS          = "status"
+	UNAUTHENTICATED = "unauthenticated"
 )
 
 func GetUsers(ctx *fiber.Ctx) error {
@@ -149,39 +154,38 @@ func UpdatePicture(ctx *fiber.Ctx) error {
 	_, err := auth.GetSession(sessionId)
 	if err != nil {
 		return ctx.Status(500).
-			JSON(fiber.Map{"error": "Failed to get session", "message": err.Error(), "status": "unauthenticated"})
+			JSON(fiber.Map{ERROR: responses.GET_SESSION_ERROR + TAG, MESSAGE: err.Error(), STATUS: UNAUTHENTICATED})
 	}
 
 	id, err := primitive.ObjectIDFromHex(param)
 	if err != nil {
-		return ctx.Status(400).JSON(fiber.Map{"error": err.Error(), "message": "Invalid Id"})
+		return ctx.Status(400).JSON(fiber.Map{ERROR: err.Error() + TAG, MESSAGE: responses.INVALID_ID})
 	}
 
 	_, err = repository.GetUserById(param)
 
 	if err != nil {
 		return ctx.Status(500).
-			JSON(fiber.Map{"error": err.Error(), "message": "Failed to get user"})
+			JSON(fiber.Map{ERROR: err.Error() + TAG, MESSAGE: responses.DATA_NOT_FOUND_MESSAGE})
 	}
 	err = ctx.BodyParser(body)
 
 	if err != nil {
 		return ctx.Status(400).
-			JSON(fiber.Map{"error": "Failed to parse request body", "message": err.Error()})
+			JSON(fiber.Map{ERROR: responses.PARSE_BODY_ERROR + TAG, MESSAGE: responses.BODY_PARSE_MESSAGE})
 	}
 
 	err = validations.IsStringEmpty(body.Picture.PictureKey)
 
 	if err != nil {
 		return ctx.Status(400).
-			JSON(fiber.Map{"error": err.Error(), "message": "PictureKey is required"})
+			JSON(fiber.Map{ERROR: err.Error() + TAG_PICTURE, MESSAGE: responses.REQUIRED_FIELD + TAG_PICTURE_KEY})
 	}
-
 	err = validations.IsStringEmpty(body.Picture.PictureURL)
 
 	if err != nil {
 		return ctx.Status(400).
-			JSON(fiber.Map{"error": err.Error(), "message": "PictureURL is required"})
+			JSON(fiber.Map{ERROR: err.Error() + TAG_PICTURE, MESSAGE: responses.REQUIRED_FIELD + TAG_PICTURE_URL})
 	}
 
 	data := bson.D{

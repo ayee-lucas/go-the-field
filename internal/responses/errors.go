@@ -11,4 +11,5 @@ const (
 
 	/** USER ERRORS */
 	PROFILE_FINISHED_ERROR = "Profile Completion Conflict "
+	GET_SESSION_ERROR      = "Failed to get Session "
 )
