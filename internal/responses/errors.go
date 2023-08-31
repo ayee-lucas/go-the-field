@@ -14,4 +14,8 @@ const (
 	/** USER ERRORS */
 	PROFILE_FINISHED_ERROR = "Profile Completion Conflict "
 	GET_SESSION_ERROR      = "Failed to get Session "
+	USERNAME_EXISTS        = "Username already exists"
+	EMAIL_EXISTS           = "Email already exists"
+	USERNAME_NOTFOUND      = "This username does not exist"
+	WRONG_PASSWORD         = "Wrong Password"
 )
